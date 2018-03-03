@@ -49,6 +49,19 @@ func (p *Parser) scanIgnoreWhiteSpace() (Token, string) {
 }
 
 func (p *Parser) Parse() (*LispStatement, error) {
+	l, err := p.parse()
+	if err != nil {
+		return nil, err
+	}
+
+	// parse the final EOF
+	if tok, lit := p.scanIgnoreWhiteSpace(); tok != EOF {
+		return nil, fmt.Errorf("found %q, expected EOF", lit)
+	}
+	return l, nil
+}
+
+func (p *Parser) parse() (*LispStatement, error) {
 	l := &LispStatement{}
 
 	if tok, lit := p.scanIgnoreWhiteSpace(); tok != LPARENTHESIS {
@@ -78,10 +91,6 @@ func (p *Parser) Parse() (*LispStatement, error) {
 
 	if tok, lit := p.scanIgnoreWhiteSpace(); tok != RPARENTHESIS {
 		return nil, fmt.Errorf("found %q, expected )", lit)
-	}
-
-	if tok, lit := p.scanIgnoreWhiteSpace(); tok != EOF {
-		return nil, fmt.Errorf("found %q, expected EOF", lit)
 	}
 
 	return l, nil
