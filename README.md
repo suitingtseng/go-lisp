@@ -1,6 +1,6 @@
 # go-lisp
 
-Writing a lisp interpreter in Golang as an excercise.
+Writing a lexical scoping lisp interpreter in Golang as an excercise.
 
 ### Usage
 
@@ -18,12 +18,16 @@ Result: 7.0000
 
 # Project status
 
-It's in a very early stage. 
+It's at a very early stage. 
 
 - [x] arithmetics with int
 - [x] arithmetics with float
 - [x] sub-statement
+- [ ] variable
+- [ ] let
+- [ ] lambda
 
 # References
 
 - [Handwritten Parsers & Lexers in Go](https://blog.gopheracademy.com/advent-2014/parsers-lexers/)
+- [Language Implementation Patterns](https://www.amazon.co.uk/Language-Implementation-Patterns-Domain-Specific-Programming/dp/193435645X)
