@@ -1,13 +1,15 @@
 package lib
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 )
 
 type LispStatement struct {
+	Number   string
 	Operator string
-	Numbers  []string
+	Children []*LispStatement
 }
 
 type Parser struct {
@@ -64,8 +66,11 @@ func (p *Parser) Parse() (*LispStatement, error) {
 func (p *Parser) parse() (*LispStatement, error) {
 	l := &LispStatement{}
 
-	if tok, lit := p.scanIgnoreWhiteSpace(); tok != LPARENTHESIS {
-		return nil, fmt.Errorf("found %q, expected (", lit)
+	if tok, lit := p.scanIgnoreWhiteSpace(); tok != LPARENTHESIS && tok != NUMBER {
+		return nil, fmt.Errorf("found %q, expected ( or number", lit)
+	} else if tok == NUMBER {
+		l.Number = lit
+		return l, nil
 	}
 
 	if tok, lit := p.scanIgnoreWhiteSpace(); tok != OPERATOR {
@@ -74,19 +79,55 @@ func (p *Parser) parse() (*LispStatement, error) {
 		l.Operator = lit
 	}
 
-	if tok, lit := p.scanIgnoreWhiteSpace(); tok != NUMBER {
-		return nil, fmt.Errorf("found %q, expected number", lit)
-	} else {
+	if tok, lit := p.scanIgnoreWhiteSpace(); tok == NUMBER || tok == LPARENTHESIS {
 		p.unscan()
 
 		for {
-			if tok, lit := p.scanIgnoreWhiteSpace(); tok != NUMBER {
+			tok, lit := p.scanIgnoreWhiteSpace()
+			if tok == RPARENTHESIS {
 				p.unscan()
 				break
+			} else if tok == NUMBER {
+				buf := bytes.NewBufferString(lit)
+				cp := NewParser(buf)
+				cl, err := cp.parse()
+				if err != nil {
+					return nil, err
+				}
+				l.Children = append(l.Children, cl)
+			} else if tok == LPARENTHESIS {
+				stack := 1
+				buf := bytes.NewBufferString(lit)
+				for {
+					tok, lit := p.scanIgnoreWhiteSpace()
+					if tok == RPARENTHESIS {
+						buf.WriteString(lit)
+						stack -= 1
+						if stack == 0 {
+							break
+						}
+					} else if tok == LPARENTHESIS {
+						buf.WriteString(lit)
+						stack += 1
+					} else if tok == EOF {
+						return nil, fmt.Errorf("found %q, expected number or )", lit)
+					} else {
+						buf.WriteString(lit)
+						buf.WriteString(" ")
+					}
+				}
+				cp := NewParser(buf)
+				cl, err := cp.parse()
+				if err != nil {
+					return nil, err
+				}
+				l.Children = append(l.Children, cl)
 			} else {
-				l.Numbers = append(l.Numbers, lit)
+				return nil, fmt.Errorf("found %q, expected number or ( or )", lit)
 			}
 		}
+	} else {
+		return nil, fmt.Errorf("found %q, expected number or (", lit)
 	}
 
 	if tok, lit := p.scanIgnoreWhiteSpace(); tok != RPARENTHESIS {

@@ -42,14 +42,23 @@ func usage() {
 
 func eval(l *lib.LispStatement) (float64, error) {
 	op := l.Operator
-	nums := l.Numbers
+	num := l.Number
+	children := l.Children
+	if num != "" {
+		val, err := strconv.ParseFloat(num, 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q", err)
+		}
+		return val, nil
+	}
+
 	switch op {
 	case "+":
 		var sum float64
-		for _, n := range nums {
-			val, err := strconv.ParseFloat(n, 64)
+		for _, c := range children {
+			val, err := eval(c)
 			if err != nil {
-				return 0, fmt.Errorf("invalid number %q", n)
+				return 0, err
 			}
 			sum += val
 		}
@@ -57,38 +66,38 @@ func eval(l *lib.LispStatement) (float64, error) {
 	case "*":
 		var accu float64
 		accu = 1
-		for _, n := range nums {
-			val, err := strconv.ParseFloat(n, 64)
+		for _, c := range children {
+			val, err := eval(c)
 			if err != nil {
-				return 0, fmt.Errorf("invalid number %q", n)
+				return 0, err
 			}
 			accu *= val
 		}
 		return accu, nil
 	case "-":
-		if len(nums) != 2 {
+		if len(children) != 2 {
 			return 0, errors.New("substract only accept 2 arguments")
 		}
-		num1, err := strconv.ParseFloat(nums[0], 64)
+		num1, err := eval(children[0])
 		if err != nil {
-			return 0, fmt.Errorf("invalid number %q", nums[0])
+			return 0, err
 		}
-		num2, err := strconv.ParseFloat(nums[1], 64)
+		num2, err := eval(children[1])
 		if err != nil {
-			return 0, fmt.Errorf("invalid number %q", nums[1])
+			return 0, err
 		}
 		return num1 - num2, nil
 	case "/":
-		if len(nums) != 2 {
+		if len(children) != 2 {
 			return 0, errors.New("division only accept 2 arguments")
 		}
-		num1, err := strconv.ParseFloat(nums[0], 64)
+		num1, err := eval(children[0])
 		if err != nil {
-			return 0, fmt.Errorf("invalid number %q", nums[0])
+			return 0, err
 		}
-		num2, err := strconv.ParseFloat(nums[1], 64)
+		num2, err := eval(children[1])
 		if err != nil {
-			return 0, fmt.Errorf("invalid number %q", nums[1])
+			return 0, err
 		}
 		if num2 == 0 {
 			return 0, errors.New("divided by zero")

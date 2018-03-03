@@ -22,7 +22,9 @@ func TestParseNormal(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "*", l.Operator)
-	assert.Equal(t, []string{"1", "3"}, l.Numbers)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
 }
 
 func TestParseAdd(t *testing.T) {
@@ -32,7 +34,9 @@ func TestParseAdd(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "+", l.Operator)
-	assert.Equal(t, []string{"1", "3"}, l.Numbers)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
 }
 
 func TestParseSubtract(t *testing.T) {
@@ -42,7 +46,9 @@ func TestParseSubtract(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "-", l.Operator)
-	assert.Equal(t, []string{"1", "3"}, l.Numbers)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
 }
 
 func TestParseDivide(t *testing.T) {
@@ -52,7 +58,9 @@ func TestParseDivide(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "/", l.Operator)
-	assert.Equal(t, []string{"1", "3"}, l.Numbers)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
 }
 
 func TestParseManyWhiteSpaces(t *testing.T) {
@@ -62,7 +70,9 @@ func TestParseManyWhiteSpaces(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "*", l.Operator)
-	assert.Equal(t, []string{"1", "3"}, l.Numbers)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
 }
 
 func TestParseManyNumbers(t *testing.T) {
@@ -72,7 +82,46 @@ func TestParseManyNumbers(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "*", l.Operator)
-	assert.Equal(t, []string{"1", "3", "6", "7", "8"}, l.Numbers)
+	assert.Len(t, l.Children, 5)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "3"}, l.Children[1])
+	assert.Equal(t, &LispStatement{Number: "6"}, l.Children[2])
+	assert.Equal(t, &LispStatement{Number: "7"}, l.Children[3])
+	assert.Equal(t, &LispStatement{Number: "8"}, l.Children[4])
+}
+
+func TestParseSimpleSubStmt(t *testing.T) {
+	p := NewParser(bytes.NewBufferString("(+ 1 (- 2 3))"))
+
+	l, err := p.Parse()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "+", l.Operator)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, "-", l.Children[1].Operator)
+	assert.Len(t, l.Children[1].Children, 2)
+	assert.Equal(t, "2", l.Children[1].Children[0].Number)
+	assert.Equal(t, "3", l.Children[1].Children[1].Number)
+}
+
+func TestParseComplexSubStmt(t *testing.T) {
+	p := NewParser(bytes.NewBufferString("(+ 1 (- (* 5 6 4) 3))"))
+
+	l, err := p.Parse()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "+", l.Operator)
+	assert.Len(t, l.Children, 2)
+	assert.Equal(t, &LispStatement{Number: "1"}, l.Children[0])
+	assert.Equal(t, "-", l.Children[1].Operator)
+	assert.Len(t, l.Children[1].Children, 2)
+	assert.Equal(t, "*", l.Children[1].Children[0].Operator)
+	assert.Len(t, l.Children[1].Children[0].Children, 3)
+	assert.Equal(t, "5", l.Children[1].Children[0].Children[0].Number)
+	assert.Equal(t, "6", l.Children[1].Children[0].Children[1].Number)
+	assert.Equal(t, "4", l.Children[1].Children[0].Children[2].Number)
+	assert.Equal(t, "3", l.Children[1].Children[1].Number)
 }
 
 func TestParseNoOperator(t *testing.T) {
@@ -99,7 +148,7 @@ func TestParseNoRP(t *testing.T) {
 	l, err := p.Parse()
 
 	assert.Nil(t, l)
-	assert.Contains(t, err.Error(), "expected )")
+	assert.Contains(t, err.Error(), "expected number or ( or )")
 }
 
 func TestParseNoEOF(t *testing.T) {
@@ -127,5 +176,15 @@ func TestParseFloat(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.Equal(t, "*", l.Operator)
-	assert.Equal(t, []string{"1.1", "2.2"}, l.Numbers)
+	assert.Equal(t, &LispStatement{Number: "1.1"}, l.Children[0])
+	assert.Equal(t, &LispStatement{Number: "2.2"}, l.Children[1])
+}
+
+func TestParseSubNoOP(t *testing.T) {
+	p := NewParser(bytes.NewBufferString("(+ 1 (123))"))
+
+	l, err := p.Parse()
+
+	assert.Nil(t, l)
+	assert.Contains(t, err.Error(), "expected operator")
 }

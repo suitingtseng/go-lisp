@@ -11,7 +11,11 @@ import (
 func TestEvalAdd(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "+",
-		Numbers:  []string{"1", "2", "4"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{Number: "2"},
+			&lib.LispStatement{Number: "4"},
+		},
 	}
 
 	res, err := eval(l)
@@ -23,7 +27,10 @@ func TestEvalAdd(t *testing.T) {
 func TestEvalSubtract(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "-",
-		Numbers:  []string{"1", "2"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{Number: "2"},
+		},
 	}
 
 	res, err := eval(l)
@@ -35,7 +42,11 @@ func TestEvalSubtract(t *testing.T) {
 func TestEvalMultiply(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "*",
-		Numbers:  []string{"1", "2", "4"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{Number: "2"},
+			&lib.LispStatement{Number: "4"},
+		},
 	}
 
 	res, err := eval(l)
@@ -47,7 +58,10 @@ func TestEvalMultiply(t *testing.T) {
 func TestEvalDivide(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "/",
-		Numbers:  []string{"1", "2"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{Number: "2"},
+		},
 	}
 
 	res, err := eval(l)
@@ -59,7 +73,9 @@ func TestEvalDivide(t *testing.T) {
 func TestEvalSubtractArguments(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "-",
-		Numbers:  []string{"1"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+		},
 	}
 
 	_, err := eval(l)
@@ -70,7 +86,9 @@ func TestEvalSubtractArguments(t *testing.T) {
 func TestEvalDivideArguments(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "/",
-		Numbers:  []string{"1"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+		},
 	}
 
 	_, err := eval(l)
@@ -80,7 +98,10 @@ func TestEvalDivideArguments(t *testing.T) {
 func TestEvalDivideByZero(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "/",
-		Numbers:  []string{"1", "0"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{Number: "0"},
+		},
 	}
 
 	_, err := eval(l)
@@ -90,11 +111,62 @@ func TestEvalDivideByZero(t *testing.T) {
 func TestEvalMultiplyFloat(t *testing.T) {
 	l := &lib.LispStatement{
 		Operator: "*",
-		Numbers:  []string{"1.1", "2.2"},
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1.1"},
+			&lib.LispStatement{Number: "2.2"},
+		},
 	}
 
 	res, err := eval(l)
 
 	assert.Nil(t, err)
 	assert.InEpsilon(t, 2.42, res, 0.0001)
+}
+
+func TestEvalSubStatement(t *testing.T) {
+	l := &lib.LispStatement{
+		Operator: "*",
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "1"},
+			&lib.LispStatement{
+				Operator: "+",
+				Children: []*lib.LispStatement{
+					&lib.LispStatement{Number: "2"},
+					&lib.LispStatement{Number: "3"},
+				},
+			},
+		},
+	}
+
+	res, err := eval(l)
+
+	assert.Nil(t, err)
+	assert.InEpsilon(t, 5, res, 0.0001)
+}
+
+func TestEvalComplexSubStatement(t *testing.T) {
+	l := &lib.LispStatement{
+		Operator: "*",
+		Children: []*lib.LispStatement{
+			&lib.LispStatement{Number: "5"},
+			&lib.LispStatement{
+				Operator: "+",
+				Children: []*lib.LispStatement{
+					&lib.LispStatement{
+						Operator: "/",
+						Children: []*lib.LispStatement{
+							&lib.LispStatement{Number: "2"},
+							&lib.LispStatement{Number: "3"},
+						},
+					},
+					&lib.LispStatement{Number: "3"},
+				},
+			},
+		},
+	}
+
+	res, err := eval(l)
+
+	assert.Nil(t, err)
+	assert.InEpsilon(t, 18.333333, res, 0.0001)
 }

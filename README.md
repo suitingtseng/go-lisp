@@ -22,7 +22,7 @@ It's in a very early stage.
 
 - [x] arithmetics with int
 - [x] arithmetics with float
-- [ ] sub-statement
+- [x] sub-statement
 
 # References
 
