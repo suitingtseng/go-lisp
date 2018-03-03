@@ -2,7 +2,21 @@
 
 Writing a lisp interpreter in Golang as an excercise.
 
-### Project status
+### Usage
+
+```shell
+$ go-lisp --help
+usage: go-lisp <filename>
+```
+
+### Examples
+
+```shell
+$ go-lisp <(echo '(* 1 2 3.5)')
+Result: 7.0000
+```
+
+# Project status
 
 It's in a very early stage. 
 
