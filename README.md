@@ -7,6 +7,6 @@ Writing a lisp interpreter in Golang as an excercise.
 It's in a very early stage. 
 
 - [x] arithmetics with int
-- [ ] arithmetics with float
+- [x] arithmetics with float
 - [ ] sub-statement
 
