@@ -45,7 +45,7 @@ func isWhitespace(ch rune) bool {
 }
 
 func isNumber(ch rune) bool {
-	return ch >= '0' && ch <= '9'
+	return (ch >= '0' && ch <= '9') || ch == '.'
 }
 
 func isOperator(ch rune) bool {

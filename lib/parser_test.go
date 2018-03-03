@@ -119,3 +119,13 @@ func TestParseIllegal(t *testing.T) {
 	assert.Nil(t, l)
 	assert.Contains(t, err.Error(), "expected (")
 }
+
+func TestParseFloat(t *testing.T) {
+	p := NewParser(bytes.NewBufferString("(* 1.1 2.2)"))
+
+	l, err := p.Parse()
+
+	assert.Nil(t, err)
+	assert.Equal(t, "*", l.Operator)
+	assert.Equal(t, []string{"1.1", "2.2"}, l.Numbers)
+}

@@ -86,3 +86,15 @@ func TestEvalDivideByZero(t *testing.T) {
 	_, err := eval(l)
 	assert.Equal(t, err.Error(), "divided by zero")
 }
+
+func TestEvalMultiplyFloat(t *testing.T) {
+	l := &lib.LispStatement{
+		Operator: "*",
+		Numbers:  []string{"1.1", "2.2"},
+	}
+
+	res, err := eval(l)
+
+	assert.Nil(t, err)
+	assert.InEpsilon(t, 2.42, res, 0.0001)
+}

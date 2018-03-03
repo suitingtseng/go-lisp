@@ -45,36 +45,55 @@ func eval(l *lib.LispStatement) (float64, error) {
 	nums := l.Numbers
 	switch op {
 	case "+":
-		sum := 0
+		var sum float64
 		for _, n := range nums {
-			val, _ := strconv.Atoi(n)
+			val, err := strconv.ParseFloat(n, 64)
+			if err != nil {
+				return 0, fmt.Errorf("invalid number %q", n)
+			}
 			sum += val
 		}
-		return float64(sum), nil
+		return sum, nil
 	case "*":
-		accu := 1
+		var accu float64
+		accu = 1
 		for _, n := range nums {
-			val, _ := strconv.Atoi(n)
+			val, err := strconv.ParseFloat(n, 64)
+			if err != nil {
+				return 0, fmt.Errorf("invalid number %q", n)
+			}
 			accu *= val
 		}
-		return float64(accu), nil
+		return accu, nil
 	case "-":
 		if len(nums) != 2 {
 			return 0, errors.New("substract only accept 2 arguments")
 		}
-		num1, _ := strconv.Atoi(nums[0])
-		num2, _ := strconv.Atoi(nums[1])
-		return float64(num1 - num2), nil
+		num1, err := strconv.ParseFloat(nums[0], 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q", nums[0])
+		}
+		num2, err := strconv.ParseFloat(nums[1], 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q", nums[1])
+		}
+		return num1 - num2, nil
 	case "/":
 		if len(nums) != 2 {
 			return 0, errors.New("division only accept 2 arguments")
 		}
-		num1, _ := strconv.Atoi(nums[0])
-		num2, _ := strconv.Atoi(nums[1])
+		num1, err := strconv.ParseFloat(nums[0], 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q", nums[0])
+		}
+		num2, err := strconv.ParseFloat(nums[1], 64)
+		if err != nil {
+			return 0, fmt.Errorf("invalid number %q", nums[1])
+		}
 		if num2 == 0 {
 			return 0, errors.New("divided by zero")
 		}
-		return float64(num1) / float64(num2), nil
+		return num1 / num2, nil
 	}
 	return 0, nil
 }
